@@ -1,0 +1,4221 @@
+````
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NER Landslide Intelligence System</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #06121f;
+            color: #dce8f4;
+        }
+
+        header {
+            height: 78px;
+            padding: 18px 28px;
+            background: #081725;
+            border-bottom: 1px solid #20364a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 23px;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            color: #8098ad;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .online {
+            color: #35ef91;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .online::before {
+            content: "";
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            background: #35ef91;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #35ef91;
+        }
+
+        .container {
+            padding: 24px;
+            max-width: 1550px;
+            margin: auto;
+        }
+
+        h2 {
+            font-size: 19px;
+            margin: 0 0 16px;
+        }
+
+        .section-title {
+            margin-top: 32px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: #0b1b2b;
+            border: 1px solid #213a50;
+            border-radius: 13px;
+            padding: 18px;
+        }
+
+        .summary-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .summary-label {
+            color: #8399ac;
+            font-size: 13px;
+        }
+
+        .critical {
+            color: #ff6464;
+        }
+
+        .high {
+            color: #ff9d4d;
+        }
+
+        .moderate {
+            color: #ffd35a;
+        }
+
+        .low {
+            color: #45e39a;
+        }
+
+        .map-card {
+            margin-top: 20px;
+            background: #0b1b2b;
+            border: 1px solid #213a50;
+            border-radius: 13px;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 550px;
+            width: 100%;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .four-column {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        label {
+            display: block;
+            color: #91a7ba;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid #29445b;
+            background: #071522;
+            color: #dce8f4;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #299bd0;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        button {
+            background: #168ac0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1ca1dc;
+        }
+
+        .prediction {
+            margin-top: 15px;
+            padding: 20px;
+            border: 1px solid #29445b;
+            border-radius: 10px;
+            background: #071522;
+        }
+
+        .prediction-risk {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .score-bar {
+            height: 9px;
+            background: #193044;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .score-fill {
+            height: 100%;
+            width: 0%;
+            background: #ff7250;
+            transition: width .5s;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 7px 0;
+            font-size: 13px;
+        }
+
+        .status-green {
+            color: #42e49b;
+        }
+
+        .status-red {
+            color: #ff6464;
+        }
+
+        .status-yellow {
+            color: #ffd35a;
+        }
+
+        .weather-main {
+            font-size: 34px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .weather-box {
+            background: #071522;
+            border: 1px solid #29445b;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .weather-box-title {
+            color: #7f97ab;
+            font-size: 12px;
+        }
+
+        .weather-box-value {
+            font-size: 17px;
+            margin-top: 7px;
+        }
+
+        .alert {
+            padding: 13px;
+            border-radius: 8px;
+            background: #101f2d;
+            border-left: 4px solid #ff6464;
+            margin-bottom: 10px;
+        }
+
+        .alert-title {
+            font-weight: bold;
+        }
+
+        .alert-meta {
+            color: #8197aa;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .road {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1d3448;
+        }
+
+        .road:last-child {
+            border-bottom: none;
+        }
+
+        .road-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .road-meta {
+            color: #8197aa;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .road-score {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .priority {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1d3448;
+        }
+
+        .priority-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #142b3e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .forecast {
+            margin-top: 20px;
+        }
+
+        .forecast-chart {
+            height: 280px;
+        }
+
+        .factor {
+            background: #071522;
+            border: 1px solid #29445b;
+            border-radius: 9px;
+            padding: 14px;
+        }
+
+        .factor-title {
+            color: #8197aa;
+            font-size: 12px;
+        }
+
+        .factor-value {
+            font-size: 23px;
+            font-weight: bold;
+            margin-top: 7px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .chart-card {
+            background: #0b1b2b;
+            border: 1px solid #213a50;
+            border-radius: 13px;
+            padding: 18px;
+        }
+
+        .chart-container {
+            height: 310px;
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .chart-subtitle {
+            font-size: 11px;
+            color: #7d94a8;
+            margin-bottom: 15px;
+        }
+
+        .zone-selector {
+            margin-top: 15px;
+        }
+
+        .zone-details {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .zone-detail {
+            background: #071522;
+            border: 1px solid #29445b;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .zone-detail-title {
+            font-size: 11px;
+            color: #8197aa;
+        }
+
+        .zone-detail-value {
+            margin-top: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .notice {
+            margin-top: 15px;
+            padding: 13px;
+            border: 1px solid #684f2b;
+            background: #211f1b;
+            border-radius: 9px;
+            color: #f0b95b;
+            font-size: 12px;
+        }
+
+        .report-status {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .leaflet-tile-pane {
+            filter:
+                brightness(0.48)
+                contrast(1.45)
+                saturate(0.65);
+        }
+
+        .legend {
+            background: #081725;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #29445b;
+        }
+
+        .legend div {
+            margin: 4px 0;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 7px;
+        }
+
+        @media (max-width: 1000px) {
+
+            .grid,
+            .four-column {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .two-column,
+            .three-column,
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+
+            .grid,
+            .four-column,
+            .form-grid,
+            .weather-grid,
+            .zone-details {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            header {
+                padding: 15px;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div>
+        <div class="header-title">
+            NER Landslide Intelligence System
+        </div>
+
+        <div class="header-subtitle">
+            AI-Based Early Warning & Landslide Risk Monitoring Platform
+        </div>
+    </div>
+
+    <div class="online">
+        SYSTEM ONLINE
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <!-- =====================================================
+         SUMMARY
+    ====================================================== -->
+
+    <div class="grid">
+
+        <div class="card">
+            <div class="summary-label">
+                MONITORED ZONES
+            </div>
+
+            <div
+                class="summary-value"
+                id="zoneCount"
+            >
+                10
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="summary-label">
+                CRITICAL ZONES
+            </div>
+
+            <div
+                class="summary-value critical"
+                id="criticalCount"
+            >
+                2
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="summary-label">
+                HIGH RISK ZONES
+            </div>
+
+            <div
+                class="summary-value high"
+                id="highCount"
+            >
+                5
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="summary-label">
+                ACTIVE ALERTS
+            </div>
+
+            <div
+                class="summary-value"
+                id="activeAlertCount"
+            >
+                0
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         GIS MAP
+    ====================================================== -->
+
+    <h2 class="section-title">
+        Regional GIS Risk Intelligence
+    </h2>
+
+    <div class="map-card">
+
+        <div id="map"></div>
+
+        <div class="notice" style="margin:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;">
+            📍 <b>Interactive Risk Estimation:</b> Click anywhere on the map to estimate landslide risk for that location.
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         AI RISK ASSESSMENT + AI ENGINE
+    ====================================================== -->
+
+    <div class="two-column">
+
+        <div class="card">
+
+            <h2>
+                AI Risk Assessment
+            </h2>
+
+            <div class="header-subtitle">
+                Environmental parameters
+            </div>
+
+            <div class="form-grid">
+
+                <div>
+                    <label>Location</label>
+
+                    <input
+                        id="location"
+                        value="Dehradun"
+                    >
+                </div>
+
+                <div>
+                    <label>Rainfall (mm)</label>
+
+                    <input
+                        id="rainfall"
+                        type="number"
+                        value="128"
+                    >
+                </div>
+
+                <div>
+                    <label>Soil Moisture (%)</label>
+
+                    <input
+                        id="soil"
+                        type="number"
+                        value="69"
+                    >
+                </div>
+
+                <div>
+                    <label>Slope (degrees)</label>
+
+                    <input
+                        id="slope"
+                        type="number"
+                        value="31"
+                    >
+                </div>
+
+                <div>
+                    <label>Elevation (m)</label>
+
+                    <input
+                        id="elevation"
+                        type="number"
+                        value="640"
+                    >
+                </div>
+
+                <div>
+                    <label>Historical Landslides</label>
+
+                    <input
+                        id="history"
+                        type="number"
+                        value="10"
+                    >
+                </div>
+
+            </div>
+
+            <br>
+
+            <button onclick="getAIPrediction()">
+                RUN AI RISK ASSESSMENT
+            </button>
+
+            <div class="prediction">
+
+                <div class="header-subtitle">
+                    AI PREDICTED RISK
+                </div>
+
+                <div
+                    id="predictionRisk"
+                    class="prediction-risk high"
+                >
+                    HIGH
+                </div>
+
+                <div>
+                    Risk Score:
+                    <b id="predictionScore">
+                        55
+                    </b>/100
+                </div>
+
+                <div class="score-bar">
+                    <div
+                        id="scoreFill"
+                        class="score-fill"
+                        style="width:55%"
+                    ></div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2>
+                AI Engine Status
+            </h2>
+
+            <div class="header-subtitle">
+                Decision-support pipeline
+            </div>
+
+            <br>
+
+            <div class="status-row">
+                <span>Machine Learning Model</span>
+                <span class="status-green">ONLINE</span>
+            </div>
+
+            <div class="status-row">
+                <span>Risk Classification</span>
+                <span class="status-green">ACTIVE</span>
+            </div>
+
+            <div class="status-row">
+                <span>Environmental Inputs</span>
+                <span class="status-green">READY</span>
+            </div>
+
+            <div class="status-row">
+                <span>Weather Feed</span>
+                <span class="status-green">CONNECTED</span>
+            </div>
+
+            <div class="status-row">
+                <span>GIS Engine</span>
+                <span class="status-green">ONLINE</span>
+            </div>
+
+            <div class="notice">
+                Prototype AI model trained on the supplied synthetic
+                landslide dataset. Production deployment should use
+                validated historical and sensor datasets.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LIVE ENVIRONMENTAL INTELLIGENCE
+    ====================================================== -->
+
+    <h2 class="section-title">
+        Live Environmental Intelligence
+    </h2>
+
+    <div class="two-column">
+
+        <!-- WEATHER -->
+
+        <div class="card">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+            ">
+
+                <div>
+                    <h2 style="margin-bottom:3px;">
+                        Live Weather
+                    </h2>
+
+                    <div class="header-subtitle">
+                        Open-Meteo environmental feed
+                    </div>
+                </div>
+
+                <div
+                    id="weatherStatus"
+                    class="status-green"
+                >
+                    CONNECTING
+                </div>
+
+            </div>
+
+            <div
+                id="weatherTemperature"
+                class="weather-main"
+            >
+                —
+            </div>
+
+            <div
+                id="weatherDescription"
+                class="header-subtitle"
+            >
+                Select a zone
+            </div>
+
+            <div class="weather-grid">
+
+                <div class="weather-box">
+                    <div class="weather-box-title">
+                        Rainfall
+                    </div>
+
+                    <div
+                        id="weatherRain"
+                        class="weather-box-value"
+                    >
+                        —
+                    </div>
+                </div>
+
+                <div class="weather-box">
+                    <div class="weather-box-title">
+                        Wind
+                    </div>
+
+                    <div
+                        id="weatherWind"
+                        class="weather-box-value"
+                    >
+                        —
+                    </div>
+                </div>
+
+                <div class="weather-box">
+                    <div class="weather-box-title">
+                        Soil Moisture
+                    </div>
+
+                    <div
+                        id="weatherSoil"
+                        class="weather-box-value"
+                    >
+                        —
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ALERTS -->
+
+        <div class="card">
+
+            <h2>
+                Live Alerts
+            </h2>
+
+            <div class="header-subtitle">
+                Early warning events
+            </div>
+
+            <br>
+
+            <div id="alerts">
+                <div
+                    style="
+                        text-align:center;
+                        color:#8197aa;
+                        padding:30px;
+                    "
+                >
+                    No active alerts
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         AI FORECAST
+    ====================================================== -->
+
+    <div class="card forecast">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+        ">
+
+            <h2 style="margin:0;">
+                AI Risk Forecast
+            </h2>
+
+            <span class="header-subtitle">
+                Prototype short-term risk projection
+            </span>
+
+        </div>
+
+        <br>
+
+        <div class="four-column">
+
+            <div class="factor">
+                <div class="factor-title">
+                    CURRENT RISK
+                </div>
+
+                <div
+                    id="forecastRisk"
+                    class="factor-value high"
+                >
+                    HIGH
+                </div>
+            </div>
+
+            <div class="factor">
+                <div class="factor-title">
+                    TREND
+                </div>
+
+                <div
+                    id="forecastTrend"
+                    class="factor-value"
+                >
+                    ↑ Increasing
+                </div>
+            </div>
+
+            <div class="factor">
+                <div class="factor-title">
+                    24H PROJECTION
+                </div>
+
+                <div
+                    id="forecast24"
+                    class="factor-value"
+                >
+                    64
+                </div>
+            </div>
+
+            <div class="factor">
+                <div class="factor-title">
+                    STATUS
+                </div>
+
+                <div
+                    id="forecastStatus"
+                    class="factor-value"
+                >
+                    MONITOR
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="chart-container">
+            <canvas id="forecastChart"></canvas>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ROAD CONNECTIVITY
+    ====================================================== -->
+
+    <h2 class="section-title">
+        Road Connectivity
+    </h2>
+
+    <div class="two-column">
+
+        <div class="card">
+
+            <h2>
+                Vulnerable Road Network
+            </h2>
+
+            <div id="roads">
+                Loading roads...
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2>
+                Emergency Response Priority
+            </h2>
+
+            <div
+                id="priorityList"
+            >
+                Loading priorities...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CITIZEN REPORTS
+    ====================================================== -->
+
+    <h2 class="section-title">
+        Citizen / Field Reporting
+    </h2>
+
+    <div class="card">
+
+        <div class="form-grid">
+
+            <div>
+
+                <label>
+                    Location
+                </label>
+
+                <input
+                    id="reportLocation"
+                    placeholder="Village / Road / District"
+                >
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Severity
+                </label>
+
+                <select id="reportSeverity">
+
+                    <option>LOW</option>
+                    <option>MODERATE</option>
+                    <option>HIGH</option>
+                    <option>CRITICAL</option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <br>
+
+        <label>
+            Description
+        </label>
+
+        <textarea
+            id="reportDescription"
+            placeholder="Describe cracks, slope movement, blocked roads, falling rocks, etc."
+        ></textarea>
+
+        <br>
+
+        <label>
+            Photo / Video
+        </label>
+
+        <input
+            id="reportMedia"
+            type="file"
+            accept="image/*,video/*"
+        >
+
+        <br><br>
+
+        <button onclick="submitReport()">
+            SUBMIT FIELD REPORT
+        </button>
+
+        <button
+            onclick="getLocation()"
+            style="margin-left:8px;"
+        >
+            📍 USE GPS
+        </button>
+
+        <div
+            id="reportStatus"
+            class="report-status"
+        ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ANALYTICS
+    ====================================================== -->
+
+    <h2 class="section-title">
+        Analytics & Historical Risk Intelligence
+    </h2>
+
+    <div class="card">
+
+        <div class="header-subtitle">
+            Comparative analysis of monitored zones using rainfall,
+            soil moisture, terrain slope and historical landslide exposure.
+        </div>
+
+        <br>
+
+        <div class="four-column">
+
+            <div class="factor">
+
+                <div class="factor-title">
+                    AVERAGE RISK SCORE
+                </div>
+
+                <div
+                    id="avgRisk"
+                    class="factor-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+            <div class="factor">
+
+                <div class="factor-title">
+                    AVERAGE RAINFALL
+                </div>
+
+                <div
+                    id="avgRainfall"
+                    class="factor-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+            <div class="factor">
+
+                <div class="factor-title">
+                    AVERAGE SLOPE
+                </div>
+
+                <div
+                    id="avgSlope"
+                    class="factor-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+            <div class="factor">
+
+                <div class="factor-title">
+                    LANDSLIDE HISTORY
+                </div>
+
+                <div
+                    id="totalHistory"
+                    class="factor-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ANALYTICS CHARTS
+    ====================================================== -->
+
+    <div class="analytics-grid">
+
+        <!-- RISK DISTRIBUTION -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Risk Distribution
+            </div>
+
+            <div class="chart-subtitle">
+                Distribution of monitored zones by predicted risk
+            </div>
+
+            <div class="chart-container">
+                <canvas id="riskDistributionChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- RISK SCORE -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Zone Risk Comparison
+            </div>
+
+            <div class="chart-subtitle">
+                Relative risk score across monitored locations
+            </div>
+
+            <div class="chart-container">
+                <canvas id="zoneRiskChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- RAINFALL -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Rainfall vs Risk
+            </div>
+
+            <div class="chart-subtitle">
+                Relationship between rainfall pressure and risk score
+            </div>
+
+            <div class="chart-container">
+                <canvas id="rainfallChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- SLOPE -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Terrain Slope vs Risk
+            </div>
+
+            <div class="chart-subtitle">
+                Steeper terrain generally increases slope instability
+            </div>
+
+            <div class="chart-container">
+                <canvas id="slopeChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- SOIL -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Soil Moisture vs Risk
+            </div>
+
+            <div class="chart-subtitle">
+                Soil saturation indicator across monitored zones
+            </div>
+
+            <div class="chart-container">
+                <canvas id="soilChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- HISTORY -->
+
+        <div class="chart-card">
+
+            <div class="chart-title">
+                Historical Landslide Exposure
+            </div>
+
+            <div class="chart-subtitle">
+                Historical events associated with monitored locations
+            </div>
+
+            <div class="chart-container">
+                <canvas id="historyChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ZONE ANALYSIS
+    ====================================================== -->
+
+    <div class="card" style="margin-top:18px;">
+
+        <h2>
+            Zone-Level Risk Analysis
+        </h2>
+
+        <div class="header-subtitle">
+            Select a monitored location to compare its environmental
+            and historical risk factors.
+        </div>
+
+        <div class="zone-selector">
+
+            <select
+                id="zoneSelector"
+                onchange="showZoneAnalysis()"
+            >
+            </select>
+
+        </div>
+
+
+        <div class="zone-details">
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    RISK LEVEL
+                </div>
+
+                <div
+                    id="zoneRisk"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    RISK SCORE
+                </div>
+
+                <div
+                    id="zoneScore"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    RAINFALL
+                </div>
+
+                <div
+                    id="zoneRain"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    SOIL MOISTURE
+                </div>
+
+                <div
+                    id="zoneSoil"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    SLOPE
+                </div>
+
+                <div
+                    id="zoneSlope"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    HISTORICAL LANDSLIDES
+                </div>
+
+                <div
+                    id="zoneHistory"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    ELEVATION
+                </div>
+
+                <div
+                    id="zoneElevation"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="zone-detail">
+
+                <div class="zone-detail-title">
+                    ROAD CONDITION
+                </div>
+
+                <div
+                    id="zoneRoad"
+                    class="zone-detail-value"
+                >
+                    —
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="notice">
+
+        ⚠️ <b>Prototype analytics:</b>
+        Monitored zones use demonstration data. Map-click risk uses
+        inverse-distance environmental interpolation plus the prototype
+        ML model. Production deployment should use validated local datasets,
+        sensor streams and official geospatial/weather sources.
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+
+    // =========================================================
+    // ZONE DATA
+    // =========================================================
+
+    const zones = [
+    // ==================== NORTH EAST ====================
+    {
+        name: "East Khasi Hills", lat: 25.28, lng: 91.73,
+        risk: "CRITICAL", score: 92, rainfall: 185, soil: 84,
+        slope: 39, elevation: 1200, history: 14, road: "Critical"
+    },
+    {
+        name: "Sohra", lat: 25.27, lng: 91.73,
+        risk: "HIGH", score: 86, rainfall: 178, soil: 82,
+        slope: 37, elevation: 1480, history: 12, road: "At Risk"
+    },
+    {
+        name: "Mawsynram", lat: 25.30, lng: 91.58,
+        risk: "HIGH", score: 84, rainfall: 190, soil: 80,
+        slope: 36, elevation: 1400, history: 11, road: "Vulnerable"
+    },
+    {
+        name: "Mawphlang", lat: 25.43, lng: 91.75,
+        risk: "HIGH", score: 79, rainfall: 165, soil: 77,
+        slope: 34, elevation: 1500, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Kohima", lat: 25.67, lng: 94.11,
+        risk: "CRITICAL", score: 88, rainfall: 174, soil: 81,
+        slope: 37, elevation: 1260, history: 12, road: "At Risk"
+    },
+    {
+        name: "Chakabama", lat: 25.60, lng: 93.83,
+        risk: "HIGH", score: 81, rainfall: 162, soil: 76,
+        slope: 35, elevation: 1100, history: 10, road: "Vulnerable"
+    },
+    {
+        name: "Wokha", lat: 26.10, lng: 94.26,
+        risk: "HIGH", score: 77, rainfall: 151, soil: 74,
+        slope: 33, elevation: 1320, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Mokokchung", lat: 26.33, lng: 94.53,
+        risk: "MODERATE", score: 62, rainfall: 128, soil: 67,
+        slope: 29, elevation: 1325, history: 7, road: "Normal"
+    },
+    {
+        name: "Aizawl", lat: 23.73, lng: 92.72,
+        risk: "HIGH", score: 76, rainfall: 151, soil: 75,
+        slope: 34, elevation: 950, history: 10, road: "Vulnerable"
+    },
+    {
+        name: "Lunglei", lat: 22.89, lng: 92.74,
+        risk: "HIGH", score: 82, rainfall: 160, soil: 78,
+        slope: 36, elevation: 1220, history: 11, road: "At Risk"
+    },
+    {
+        name: "Serchhip", lat: 23.31, lng: 92.85,
+        risk: "HIGH", score: 73, rainfall: 142, soil: 71,
+        slope: 32, elevation: 900, history: 8, road: "Vulnerable"
+    },
+    {
+        name: "Kolasib", lat: 24.22, lng: 92.68,
+        risk: "MODERATE", score: 61, rainfall: 120, soil: 66,
+        slope: 28, elevation: 680, history: 6, road: "Normal"
+    },
+    {
+        name: "Imphal", lat: 24.82, lng: 93.94,
+        risk: "HIGH", score: 70, rainfall: 145, soil: 72,
+        slope: 31, elevation: 790, history: 8, road: "At Risk"
+    },
+    {
+        name: "Ukhrul", lat: 25.10, lng: 94.36,
+        risk: "HIGH", score: 79, rainfall: 155, soil: 76,
+        slope: 36, elevation: 1800, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Agartala", lat: 23.83, lng: 91.28,
+        risk: "LOW", score: 24, rainfall: 112, soil: 55,
+        slope: 12, elevation: 16, history: 2, road: "Normal"
+    },
+    {
+        name: "Itanagar", lat: 27.08, lng: 93.62,
+        risk: "HIGH", score: 72, rainfall: 139, soil: 73,
+        slope: 32, elevation: 820, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Naharlagun", lat: 27.10, lng: 93.70,
+        risk: "HIGH", score: 75, rainfall: 146, soil: 74,
+        slope: 33, elevation: 700, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Bomdila", lat: 27.26, lng: 92.42,
+        risk: "CRITICAL", score: 87, rainfall: 171, soil: 82,
+        slope: 39, elevation: 2217, history: 13, road: "Critical"
+    },
+    {
+        name: "Tawang", lat: 27.59, lng: 91.86,
+        risk: "HIGH", score: 80, rainfall: 135, soil: 72,
+        slope: 38, elevation: 2669, history: 10, road: "At Risk"
+    },
+
+    // ==================== EAST INDIA ====================
+    {
+        name: "Gangtok", lat: 27.33, lng: 88.61,
+        risk: "MODERATE", score: 54, rainfall: 98, soil: 62,
+        slope: 28, elevation: 1650, history: 6, road: "Normal"
+    },
+    {
+        name: "Mangan", lat: 27.51, lng: 88.53,
+        risk: "HIGH", score: 78, rainfall: 132, soil: 71,
+        slope: 35, elevation: 1750, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Namchi", lat: 27.17, lng: 88.36,
+        risk: "HIGH", score: 70, rainfall: 118, soil: 68,
+        slope: 32, elevation: 1315, history: 7, road: "Vulnerable"
+    },
+    {
+        name: "Pakyong", lat: 27.23, lng: 88.61,
+        risk: "MODERATE", score: 58, rainfall: 104, soil: 64,
+        slope: 29, elevation: 1240, history: 6, road: "Normal"
+    },
+    {
+        name: "Darjeeling", lat: 27.04, lng: 88.26,
+        risk: "HIGH", score: 71, rainfall: 142, soil: 70,
+        slope: 33, elevation: 2050, history: 8, road: "Vulnerable"
+    },
+    {
+        name: "Kurseong", lat: 26.88, lng: 88.28,
+        risk: "HIGH", score: 74, rainfall: 136, soil: 72,
+        slope: 34, elevation: 1458, history: 8, road: "At Risk"
+    },
+    {
+        name: "Kalimpong", lat: 27.06, lng: 88.47,
+        risk: "HIGH", score: 76, rainfall: 148, soil: 73,
+        slope: 35, elevation: 1250, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Kolkata", lat: 22.57, lng: 88.36,
+        risk: "LOW", score: 12, rainfall: 84, soil: 48,
+        slope: 3, elevation: 9, history: 1, road: "Normal"
+    },
+    {
+        name: "Ranchi", lat: 23.34, lng: 85.31,
+        risk: "MODERATE", score: 43, rainfall: 105, soil: 58,
+        slope: 20, elevation: 651, history: 4, road: "Normal"
+    },
+    {
+        name: "Bhubaneswar", lat: 20.30, lng: 85.82,
+        risk: "LOW", score: 22, rainfall: 118, soil: 52,
+        slope: 8, elevation: 25, history: 2, road: "Normal"
+    },
+
+    // ==================== NORTH INDIA ====================
+    {
+        name: "Dehradun", lat: 30.32, lng: 78.03,
+        risk: "HIGH", score: 69, rainfall: 128, soil: 69,
+        slope: 31, elevation: 640, history: 10, road: "At Risk"
+    },
+    {
+        name: "Mussoorie", lat: 30.46, lng: 78.07,
+        risk: "HIGH", score: 78, rainfall: 145, soil: 74,
+        slope: 36, elevation: 2005, history: 11, road: "Vulnerable"
+    },
+    {
+        name: "Chakrata", lat: 30.70, lng: 77.87,
+        risk: "HIGH", score: 75, rainfall: 137, soil: 71,
+        slope: 34, elevation: 2118, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Shimla", lat: 31.10, lng: 77.17,
+        risk: "MODERATE", score: 57, rainfall: 92, soil: 59,
+        slope: 29, elevation: 2200, history: 7, road: "Normal"
+    },
+    {
+        name: "Kufri", lat: 31.10, lng: 77.27,
+        risk: "HIGH", score: 68, rainfall: 110, soil: 65,
+        slope: 32, elevation: 2510, history: 8, road: "Vulnerable"
+    },
+    {
+        name: "Narkanda", lat: 31.27, lng: 77.45,
+        risk: "HIGH", score: 72, rainfall: 118, soil: 68,
+        slope: 34, elevation: 2708, history: 9, road: "At Risk"
+    },
+    {
+        name: "Mandi", lat: 31.71, lng: 76.93,
+        risk: "HIGH", score: 73, rainfall: 135, soil: 71,
+        slope: 35, elevation: 1040, history: 11, road: "Vulnerable"
+    },
+    {
+        name: "Kullu", lat: 31.96, lng: 77.11,
+        risk: "HIGH", score: 79, rainfall: 129, soil: 73,
+        slope: 37, elevation: 1220, history: 10, road: "At Risk"
+    },
+    {
+        name: "Manali", lat: 32.24, lng: 77.19,
+        risk: "HIGH", score: 83, rainfall: 138, soil: 76,
+        slope: 38, elevation: 2050, history: 11, road: "Critical"
+    },
+    {
+        name: "Leh", lat: 34.15, lng: 77.58,
+        risk: "LOW", score: 18, rainfall: 12, soil: 28,
+        slope: 22, elevation: 3500, history: 2, road: "Normal"
+    },
+    {
+        name: "Srinagar", lat: 34.08, lng: 74.80,
+        risk: "MODERATE", score: 46, rainfall: 72, soil: 57,
+        slope: 24, elevation: 1585, history: 4, road: "Normal"
+    },
+    {
+        name: "Jammu", lat: 32.73, lng: 74.87,
+        risk: "LOW", score: 29, rainfall: 65, soil: 49,
+        slope: 15, elevation: 327, history: 3, road: "Normal"
+    },
+    {
+        name: "Chandigarh", lat: 30.73, lng: 76.78,
+        risk: "LOW", score: 10, rainfall: 78, soil: 45,
+        slope: 4, elevation: 321, history: 1, road: "Normal"
+    },
+    {
+        name: "Delhi", lat: 28.61, lng: 77.21,
+        risk: "LOW", score: 8, rainfall: 64, soil: 42,
+        slope: 2, elevation: 216, history: 0, road: "Normal"
+    },
+
+    // ==================== WEST INDIA ====================
+    {
+        name: "Mumbai", lat: 19.08, lng: 72.88,
+        risk: "MODERATE", score: 41, rainfall: 155, soil: 61,
+        slope: 12, elevation: 14, history: 3, road: "Normal"
+    },
+    {
+        name: "Lonavala", lat: 18.75, lng: 73.41,
+        risk: "HIGH", score: 66, rainfall: 175, soil: 73,
+        slope: 27, elevation: 622, history: 7, road: "Vulnerable"
+    },
+    {
+        name: "Pune", lat: 18.52, lng: 73.86,
+        risk: "LOW", score: 25, rainfall: 92, soil: 51,
+        slope: 10, elevation: 560, history: 2, road: "Normal"
+    },
+    {
+        name: "Goa", lat: 15.49, lng: 73.83,
+        risk: "LOW", score: 27, rainfall: 165, soil: 60,
+        slope: 9, elevation: 7, history: 2, road: "Normal"
+    },
+    {
+        name: "Ahmedabad", lat: 23.02, lng: 72.57,
+        risk: "LOW", score: 9, rainfall: 58, soil: 43,
+        slope: 2, elevation: 53, history: 0, road: "Normal"
+    },
+    {
+        name: "Udaipur", lat: 24.59, lng: 73.71,
+        risk: "LOW", score: 21, rainfall: 76, soil: 48,
+        slope: 12, elevation: 598, history: 1, road: "Normal"
+    },
+
+    // ==================== CENTRAL INDIA ====================
+    {
+        name: "Bhopal", lat: 23.26, lng: 77.41,
+        risk: "LOW", score: 18, rainfall: 87, soil: 50,
+        slope: 9, elevation: 527, history: 1, road: "Normal"
+    },
+    {
+        name: "Indore", lat: 22.72, lng: 75.86,
+        risk: "LOW", score: 15, rainfall: 75, soil: 46,
+        slope: 6, elevation: 553, history: 1, road: "Normal"
+    },
+    {
+        name: "Raipur", lat: 21.25, lng: 81.63,
+        risk: "LOW", score: 19, rainfall: 92, soil: 54,
+        slope: 7, elevation: 298, history: 1, road: "Normal"
+    },
+    {
+        name: "Jabalpur", lat: 23.18, lng: 79.95,
+        risk: "MODERATE", score: 38, rainfall: 96, soil: 59,
+        slope: 14, elevation: 412, history: 3, road: "Normal"
+    },
+
+    // ==================== SOUTH INDIA ====================
+    {
+        name: "Kozhikode", lat: 11.25, lng: 75.78,
+        risk: "MODERATE", score: 51, rainfall: 110, soil: 64,
+        slope: 23, elevation: 55, history: 5, road: "Normal"
+    },
+    {
+        name: "Munnar", lat: 10.09, lng: 77.06,
+        risk: "HIGH", score: 73, rainfall: 170, soil: 77,
+        slope: 34, elevation: 1532, history: 9, road: "Vulnerable"
+    },
+    {
+        name: "Wayanad", lat: 11.69, lng: 76.13,
+        risk: "HIGH", score: 76, rainfall: 185, soil: 79,
+        slope: 31, elevation: 900, history: 10, road: "At Risk"
+    },
+    {
+        name: "Kodaikanal", lat: 10.24, lng: 77.49,
+        risk: "MODERATE", score: 48, rainfall: 118, soil: 64,
+        slope: 25, elevation: 2082, history: 5, road: "Normal"
+    },
+    {
+        name: "Ooty", lat: 11.41, lng: 76.69,
+        risk: "MODERATE", score: 55, rainfall: 126, soil: 67,
+        slope: 28, elevation: 2240, history: 6, road: "Normal"
+    },
+    {
+        name: "Bengaluru", lat: 12.97, lng: 77.59,
+        risk: "LOW", score: 14, rainfall: 71, soil: 49,
+        slope: 5, elevation: 920, history: 1, road: "Normal"
+    },
+    {
+        name: "Coorg", lat: 12.42, lng: 75.74,
+        risk: "MODERATE", score: 48, rainfall: 142, soil: 69,
+        slope: 24, elevation: 1150, history: 5, road: "Normal"
+    },
+    {
+        name: "Hyderabad", lat: 17.39, lng: 78.49,
+        risk: "LOW", score: 11, rainfall: 63, soil: 45,
+        slope: 4, elevation: 505, history: 0, road: "Normal"
+    },
+    {
+        name: "Visakhapatnam", lat: 17.69, lng: 83.22,
+        risk: "LOW", score: 23, rainfall: 108, soil: 55,
+        slope: 10, elevation: 45, history: 2, road: "Normal"
+    },
+    {
+        name: "Chennai", lat: 13.08, lng: 80.27,
+        risk: "LOW", score: 7, rainfall: 77, soil: 43,
+        slope: 2, elevation: 6, history: 0, road: "Normal"
+    }
+];
+
+
+    // =========================================================
+    // MAP
+    // =========================================================
+
+    const map = L.map("map").setView(
+        [22.5, 79.0],
+        5
+    );
+
+
+    const streetMap = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap contributors"
+        }
+    );
+
+
+    const satelliteMap = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        {
+            maxZoom: 19,
+            attribution: "Tiles &copy; Esri"
+        }
+    );
+
+
+    const terrainMap = L.tileLayer(
+        "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 17,
+            attribution: "&copy; OpenTopoMap contributors"
+        }
+    );
+
+
+    streetMap.addTo(map);
+
+
+    const riskLayer = L.layerGroup().addTo(map);
+
+    const roadLayer = L.layerGroup().addTo(map);
+
+
+    function riskColor(risk) {
+
+        if (risk === "CRITICAL") {
+            return "#ff4545";
+        }
+
+        if (risk === "HIGH") {
+            return "#ff963f";
+        }
+
+        if (risk === "MODERATE") {
+            return "#ffd447";
+        }
+
+        return "#38e69a";
+    }
+
+
+    // =========================================================
+    // RISK ZONES ON MAP
+    // =========================================================
+
+    zones.forEach(zone => {
+
+        const color = riskColor(
+            zone.risk
+        );
+
+        const marker = L.circleMarker(
+            [zone.lat, zone.lng],
+            {
+                radius: 8,
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.85,
+                weight: 2
+            }
+        );
+
+
+        marker.bindPopup(`
+            <b>${zone.name}</b><br><br>
+
+            Risk: <b>${zone.risk}</b><br>
+            Score: ${zone.score}/100<br>
+            Rainfall: ${zone.rainfall} mm<br>
+            Soil Moisture: ${zone.soil}%<br>
+            Slope: ${zone.slope}°<br>
+            Elevation: ${zone.elevation} m<br>
+            Historical Landslides: ${zone.history}<br>
+            Road: ${zone.road}
+        `);
+
+
+        marker.on(
+            "click",
+            event => {
+
+                L.DomEvent.stopPropagation(
+                    event
+                );
+
+                selectZone(zone);
+
+            }
+        );
+
+
+        marker.addTo(riskLayer);
+
+
+        L.circle(
+            [zone.lat, zone.lng],
+            {
+                radius: zone.score * 800,
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.06,
+                weight: 1,
+                interactive: false
+            }
+        ).addTo(riskLayer);
+
+    });
+
+
+    // =========================================================
+    // MAP LAYERS
+    // =========================================================
+
+    const baseMaps = {
+
+        "🗺️ Street Map": streetMap,
+
+        "🛰️ Satellite": satelliteMap,
+
+        "⛰️ Terrain": terrainMap
+
+    };
+
+
+    const overlayMaps = {
+
+        "🔴 Landslide Risk Zones": riskLayer,
+
+        "🛣️ Road Connectivity": roadLayer
+
+    };
+
+
+    L.control.layers(
+        baseMaps,
+        overlayMaps,
+        {
+            collapsed: false
+        }
+    ).addTo(map);
+
+
+    // =========================================================
+    // MAP LEGEND
+    // =========================================================
+
+    const legend = L.control({
+        position: "bottomright"
+    });
+
+
+    legend.onAdd = function() {
+
+        const div = L.DomUtil.create(
+            "div",
+            "legend"
+        );
+
+        div.innerHTML = `
+
+            <b>Risk Level</b>
+
+            <div>
+                <span
+                    class="legend-dot"
+                    style="background:#ff4545"
+                ></span>
+                Critical
+            </div>
+
+            <div>
+                <span
+                    class="legend-dot"
+                    style="background:#ff963f"
+                ></span>
+                High
+            </div>
+
+            <div>
+                <span
+                    class="legend-dot"
+                    style="background:#ffd447"
+                ></span>
+                Moderate
+            </div>
+
+            <div>
+                <span
+                    class="legend-dot"
+                    style="background:#38e69a"
+                ></span>
+                Low
+            </div>
+
+        `;
+
+        return div;
+    };
+
+
+    legend.addTo(map);
+
+
+    // =========================================================
+    // ZONE SELECTOR
+    // =========================================================
+
+    const zoneSelector =
+        document.getElementById(
+            "zoneSelector"
+        );
+
+
+    zones.forEach(zone => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = zone.name;
+
+        option.textContent =
+            zone.name;
+
+        zoneSelector.appendChild(
+            option
+        );
+
+    });
+
+
+    zoneSelector.value = "Dehradun";
+
+
+    // =========================================================
+    // SUMMARY
+    // =========================================================
+
+    function updateSummary() {
+
+        const critical =
+            zones.filter(
+                z => z.risk === "CRITICAL"
+            ).length;
+
+        const high =
+            zones.filter(
+                z => z.risk === "HIGH"
+            ).length;
+
+        document.getElementById(
+            "zoneCount"
+        ).textContent = zones.length;
+
+        document.getElementById(
+            "criticalCount"
+        ).textContent = critical;
+
+        document.getElementById(
+            "highCount"
+        ).textContent = high;
+
+    }
+
+
+    updateSummary();
+
+
+    // =========================================================
+    // AI PREDICTION
+    // =========================================================
+
+    async function getAIPrediction() {
+
+        const payload = {
+
+            location:
+                document.getElementById(
+                    "location"
+                ).value,
+
+            rainfall:
+                Number(
+                    document.getElementById(
+                        "rainfall"
+                    ).value
+                ),
+
+            soil_moisture:
+                Number(
+                    document.getElementById(
+                        "soil"
+                    ).value
+                ),
+
+            slope:
+                Number(
+                    document.getElementById(
+                        "slope"
+                    ).value
+                ),
+
+            elevation:
+                Number(
+                    document.getElementById(
+                        "elevation"
+                    ).value
+                ),
+
+            historical_landslides:
+                Number(
+                    document.getElementById(
+                        "history"
+                    ).value
+                )
+
+        };
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/predict",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!data.success) {
+                throw new Error(
+                    data.error ||
+                    "Prediction failed"
+                );
+            }
+
+
+            let displayRisk =
+                data.risk;
+
+            let displayScore =
+                data.risk_score;
+
+            // For an arbitrary map click, combine the ML output
+            // with the mathematical environmental risk index.
+            if (
+                currentSelectedZone &&
+                currentSelectedZone.isDynamic
+            ) {
+
+                const mathScore =
+                    currentSelectedZone.mathScore;
+
+                displayScore =
+                    Math.round(
+                        (data.risk_score * 0.70) +
+                        (mathScore * 0.30)
+                    );
+
+                displayRisk =
+                    riskFromScore(
+                        displayScore
+                    );
+
+                currentSelectedZone.score =
+                    displayScore;
+
+                currentSelectedZone.risk =
+                    displayRisk;
+
+                document.getElementById(
+                    "zoneRisk"
+                ).textContent =
+                    displayRisk;
+
+                document.getElementById(
+                    "zoneScore"
+                ).textContent =
+                    displayScore + "/100";
+            }
+
+
+            document.getElementById(
+                "predictionRisk"
+            ).textContent =
+                displayRisk;
+
+
+            document.getElementById(
+                "predictionScore"
+            ).textContent =
+                displayScore;
+
+
+            document.getElementById(
+                "scoreFill"
+            ).style.width =
+                displayScore + "%";
+
+
+            const riskElement =
+                document.getElementById(
+                    "predictionRisk"
+                );
+
+
+            riskElement.className =
+                "prediction-risk " +
+                displayRisk.toLowerCase();
+
+
+            updateForecast(
+                payload,
+                displayScore
+            );
+
+
+            loadAlerts();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Prediction error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // LIVE WEATHER
+    // =========================================================
+
+    async function loadWeather(zone) {
+
+        const status =
+            document.getElementById(
+                "weatherStatus"
+            );
+
+
+        status.textContent =
+            "CONNECTING";
+
+        status.className =
+            "status-yellow";
+
+
+        try {
+
+            const url =
+                `/weather?latitude=${zone.lat}&longitude=${zone.lng}`;
+
+
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok ||
+                !data.success) {
+
+                throw new Error(
+                    data.error ||
+                    "Weather unavailable"
+                );
+
+            }
+
+
+            const current =
+                data.current || {};
+
+
+            const temperature =
+                current.temperature_2m ??
+                data.temperature;
+
+
+            const rain =
+                current.precipitation ??
+                data.rainfall ??
+                zone.rainfall ??
+                0;
+
+
+            const wind =
+                current.wind_speed_10m ??
+                data.wind ??
+                0;
+
+
+            const soil =
+                current.soil_moisture_0_to_10cm ??
+                data.soil_moisture ??
+                zone.soil;
+
+
+            document.getElementById(
+                "weatherTemperature"
+            ).textContent =
+                temperature !== null &&
+                temperature !== undefined
+                    ? `${temperature}°C`
+                    : "—";
+
+
+            document.getElementById(
+                "weatherDescription"
+            ).textContent =
+                data.weather_description ||
+                "Live weather for " + zone.name;
+
+
+            document.getElementById(
+                "weatherRain"
+            ).textContent =
+                `${rain} mm`;
+
+
+            document.getElementById(
+                "weatherWind"
+            ).textContent =
+                `${wind} km/h`;
+
+
+            document.getElementById(
+                "weatherSoil"
+            ).textContent =
+                soil !== null &&
+                soil !== undefined
+                    ? `${soil}`
+                    : "—";
+
+
+            status.textContent =
+                "LIVE";
+
+            status.className =
+                "status-green";
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Weather API error:",
+                error
+            );
+
+            // Graceful fallback keeps the dashboard usable when
+            // the external weather API is temporarily unreachable.
+            const fallbackTemp =
+                Math.round(
+                    30 - Math.abs(zone.lat - 20) * 0.45
+                );
+
+            const fallbackRain =
+                zone.rainfall ?? 0;
+
+            const fallbackSoil =
+                zone.soil ?? "—";
+
+
+            document.getElementById(
+                "weatherTemperature"
+            ).textContent =
+                `${fallbackTemp}°C`;
+
+
+            document.getElementById(
+                "weatherDescription"
+            ).textContent =
+                "Estimated conditions • " + zone.name;
+
+
+            document.getElementById(
+                "weatherRain"
+            ).textContent =
+                `${fallbackRain} mm`;
+
+
+            document.getElementById(
+                "weatherWind"
+            ).textContent =
+                "—";
+
+
+            document.getElementById(
+                "weatherSoil"
+            ).textContent =
+                `${fallbackSoil}`;
+
+
+            status.textContent =
+                "ESTIMATED";
+
+            status.className =
+                "status-yellow";
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CLICK-ANYWHERE RISK ESTIMATION
+    // =========================================================
+
+    let currentSelectedZone = null;
+    let dynamicPointLayer = L.layerGroup().addTo(map);
+
+    function estimateEnvironmentalFactors(lat, lng) {
+
+        // Inverse Distance Weighting (IDW):
+        // nearby monitored zones contribute more strongly than distant zones.
+        let weighted = {
+            rainfall: 0,
+            soil: 0,
+            slope: 0,
+            elevation: 0,
+            history: 0
+        };
+
+        let totalWeight = 0;
+
+        zones.forEach(zone => {
+
+            const latFactor = Math.cos(
+                lat * Math.PI / 180
+            );
+
+            const dx = (
+                (zone.lng - lng) * latFactor
+            );
+
+            const dy = (
+                zone.lat - lat
+            );
+
+            const distance =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                ) + 0.05;
+
+            const weight =
+                1 / Math.pow(distance, 2);
+
+            weighted.rainfall +=
+                zone.rainfall * weight;
+
+            weighted.soil +=
+                zone.soil * weight;
+
+            weighted.slope +=
+                zone.slope * weight;
+
+            weighted.elevation +=
+                zone.elevation * weight;
+
+            weighted.history +=
+                zone.history * weight;
+
+            totalWeight += weight;
+
+        });
+
+        return {
+            rainfall: weighted.rainfall / totalWeight,
+            soil: weighted.soil / totalWeight,
+            slope: weighted.slope / totalWeight,
+            elevation: weighted.elevation / totalWeight,
+            history: weighted.history / totalWeight
+        };
+    }
+
+
+    function calculateMathematicalRisk(factors) {
+
+        // Prototype weighted risk index.
+        // Higher rainfall, soil saturation, slope and historical exposure
+        // increase the estimated landslide risk.
+        const rainfallScore =
+            Math.min(
+                100,
+                (factors.rainfall / 220) * 100
+            );
+
+        const soilScore =
+            Math.min(
+                100,
+                factors.soil
+            );
+
+        const slopeScore =
+            Math.min(
+                100,
+                (factors.slope / 45) * 100
+            );
+
+        const historyScore =
+            Math.min(
+                100,
+                (factors.history / 15) * 100
+            );
+
+        const elevationScore =
+            Math.min(
+                100,
+                (factors.elevation / 3000) * 100
+            );
+
+        const score =
+            (
+                rainfallScore * 0.32 +
+                soilScore * 0.23 +
+                slopeScore * 0.25 +
+                historyScore * 0.12 +
+                elevationScore * 0.08
+            );
+
+        return Math.round(
+            Math.max(
+                0,
+                Math.min(100, score)
+            )
+        );
+    }
+
+
+    function addDynamicZoneOption(zone) {
+
+        const selector =
+            document.getElementById(
+                "zoneSelector"
+            );
+
+        if (!selector) {
+            return;
+        }
+
+        const existing =
+            Array.from(
+                selector.options
+            ).find(
+                option =>
+                    option.value === zone.name
+            );
+
+        if (!existing) {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                zone.name;
+
+            option.textContent =
+                zone.name;
+
+            selector.appendChild(
+                option
+            );
+        }
+
+        selector.value =
+            zone.name;
+    }
+
+
+    async function handleMapClick(event) {
+
+        const lat =
+            Number(
+                event.latlng.lat.toFixed(5)
+            );
+
+        const lng =
+            Number(
+                event.latlng.lng.toFixed(5)
+            );
+
+        const factors =
+            estimateEnvironmentalFactors(
+                lat,
+                lng
+            );
+
+        const mathScore =
+            calculateMathematicalRisk(
+                factors
+            );
+
+        const estimatedRisk =
+            riskFromScore(
+                mathScore
+            );
+
+        const dynamicZone = {
+
+            name:
+                `Selected Point (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+
+            lat: lat,
+            lng: lng,
+
+            risk:
+                estimatedRisk,
+
+            score:
+                mathScore,
+
+            rainfall:
+                Math.round(
+                    factors.rainfall
+                ),
+
+            soil:
+                Math.round(
+                    factors.soil
+                ),
+
+            slope:
+                Math.round(
+                    factors.slope
+                ),
+
+            elevation:
+                Math.round(
+                    factors.elevation
+                ),
+
+            history:
+                Math.max(
+                    0,
+                    Math.round(
+                        factors.history
+                    )
+                ),
+
+            road:
+                "Area estimate",
+
+            isDynamic:
+                true,
+
+            mathScore:
+                mathScore
+        };
+
+        currentSelectedZone =
+            dynamicZone;
+
+        dynamicPointLayer.clearLayers();
+
+        const color =
+            riskColor(
+                estimatedRisk
+            );
+
+        const point =
+            L.circleMarker(
+                [lat, lng],
+                {
+                    radius: 11,
+                    color: "#ffffff",
+                    fillColor: color,
+                    fillOpacity: 0.95,
+                    weight: 3
+                }
+            );
+
+        point.bindPopup(`
+            <b>Selected Location</b><br><br>
+            Latitude: ${lat}<br>
+            Longitude: ${lng}<br>
+            Mathematical Risk: <b>${estimatedRisk}</b><br>
+            Estimated Score: ${mathScore}/100
+        `);
+
+        point.addTo(
+            dynamicPointLayer
+        );
+
+        point.openPopup();
+
+        addDynamicZoneOption(
+            dynamicZone
+        );
+
+        await selectZone(
+            dynamicZone,
+            false
+        );
+    }
+
+
+    map.on(
+        "click",
+        handleMapClick
+    );
+
+
+    // =========================================================
+    // SELECT ZONE
+    // =========================================================
+
+    async function selectZone(
+        zone,
+        recenter = true
+    ) {
+
+        if (!zone) {
+            return;
+        }
+
+        currentSelectedZone =
+            zone;
+
+        console.log(
+            "Selected zone:",
+            zone.name
+        );
+
+        // Update AI Risk Assessment inputs
+        document.getElementById("location").value =
+            zone.name;
+
+        document.getElementById("rainfall").value =
+            zone.rainfall;
+
+        document.getElementById("soil").value =
+            zone.soil;
+
+        document.getElementById("slope").value =
+            zone.slope;
+
+        document.getElementById("elevation").value =
+            zone.elevation;
+
+        document.getElementById("history").value =
+            zone.history;
+
+        // Update zone selector
+        const selector =
+            document.getElementById(
+                "zoneSelector"
+            );
+
+        if (selector) {
+
+            const optionExists =
+                Array.from(
+                    selector.options
+                ).some(
+                    option =>
+                        option.value ===
+                        zone.name
+                );
+
+            if (!optionExists) {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                option.value =
+                    zone.name;
+
+                option.textContent =
+                    zone.name;
+
+                selector.appendChild(
+                    option
+                );
+            }
+
+            selector.value =
+                zone.name;
+        }
+
+        // Update Zone-Level Risk Analysis
+        document.getElementById("zoneRisk").textContent =
+            zone.risk;
+
+        document.getElementById("zoneScore").textContent =
+            zone.score + "/100";
+
+        document.getElementById("zoneRain").textContent =
+            zone.rainfall + " mm";
+
+        document.getElementById("zoneSoil").textContent =
+            zone.soil + "%";
+
+        document.getElementById("zoneSlope").textContent =
+            zone.slope + "°";
+
+        document.getElementById("zoneHistory").textContent =
+            zone.history;
+
+        document.getElementById("zoneElevation").textContent =
+            zone.elevation + " m";
+
+        document.getElementById("zoneRoad").textContent =
+            zone.road;
+
+        // Center map only for normal zone selection.
+        if (recenter) {
+
+            map.setView(
+                [zone.lat, zone.lng],
+                8,
+                { animate: true }
+            );
+        }
+
+        // Load live weather for selected location
+        await loadWeather(
+            zone
+        );
+
+        // Run AI prediction
+        await getAIPrediction();
+    }
+
+    // =========================================================
+    // FORECAST
+    // =========================================================
+
+    let forecastChart;
+
+
+    function updateForecast(
+        zone,
+        currentScore
+    ) {
+
+        const forecastScores = [
+
+            currentScore,
+
+            Math.min(
+                100,
+                currentScore + 3
+            ),
+
+            Math.min(
+                100,
+                currentScore + 6
+            ),
+
+            Math.min(
+                100,
+                currentScore + 9
+            )
+
+        ];
+
+
+        document.getElementById(
+            "forecastRisk"
+        ).textContent =
+            riskFromScore(
+                currentScore
+            );
+
+
+        document.getElementById(
+            "forecast24"
+        ).textContent =
+            forecastScores[3];
+
+
+        const trend =
+            forecastScores[3] -
+            forecastScores[0];
+
+
+        document.getElementById(
+            "forecastTrend"
+        ).textContent =
+            trend >= 5
+                ? "↑ Increasing"
+                : "→ Stable";
+
+
+        document.getElementById(
+            "forecastStatus"
+        ).textContent =
+            currentScore >= 80
+                ? "IMMEDIATE"
+                : currentScore >= 60
+                    ? "MONITOR"
+                    : "NORMAL";
+
+
+        const ctx =
+            document.getElementById(
+                "forecastChart"
+            );
+
+
+        if (forecastChart) {
+            forecastChart.destroy();
+        }
+
+
+        forecastChart =
+            new Chart(
+                ctx,
+                {
+
+                    type: "line",
+
+                    data: {
+
+                        labels: [
+                            "NOW",
+                            "+6H",
+                            "+12H",
+                            "+24H"
+                        ],
+
+                        datasets: [
+
+                            {
+                                label:
+                                    "Projected Risk Score",
+
+                                data:
+                                    forecastScores,
+
+                                borderWidth: 2,
+
+                                tension: 0.3
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio: false,
+
+                        scales: {
+
+                            y: {
+
+                                min: 0,
+
+                                max: 100,
+
+                                ticks: {
+                                    color: "#8197aa"
+                                }
+
+                            },
+
+                            x: {
+
+                                ticks: {
+                                    color: "#8197aa"
+                                }
+
+                            }
+
+                        },
+
+                        plugins: {
+
+                            legend: {
+                                labels: {
+                                    color:
+                                        "#dce8f4"
+                                }
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    function riskFromScore(score) {
+
+        if (score >= 80)
+            return "CRITICAL";
+
+        if (score >= 60)
+            return "HIGH";
+
+        if (score >= 35)
+            return "MODERATE";
+
+        return "LOW";
+
+    }
+
+
+    // =========================================================
+    // ALERTS
+    // =========================================================
+
+    async function loadAlerts() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/alerts"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            const container =
+                document.getElementById(
+                    "alerts"
+                );
+
+
+            const active =
+                (data.alerts || [])
+                    .filter(
+                        a =>
+                            a.status ===
+                            "ACTIVE"
+                    );
+
+
+            document.getElementById(
+                "activeAlertCount"
+            ).textContent =
+                active.length;
+
+
+            if (
+                active.length === 0
+            ) {
+
+                container.innerHTML = `
+                    <div style="
+                        text-align:center;
+                        color:#8197aa;
+                        padding:30px;
+                    ">
+                        No active alerts
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            container.innerHTML =
+                active.map(
+                    alert => `
+
+                    <div class="alert">
+
+                        <div class="alert-title">
+                            🚨 ${alert.risk}
+                            — ${alert.location}
+                        </div>
+
+                        <div>
+                            ${alert.message}
+                        </div>
+
+                        <div class="alert-meta">
+                            ${alert.timestamp}
+                        </div>
+
+                    </div>
+
+                `
+                ).join("");
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Alert error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ROADS
+    // =========================================================
+
+    async function loadRoads() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/roads"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            const container =
+                document.getElementById(
+                    "roads"
+                );
+
+
+            container.innerHTML =
+                data.roads.map(
+                    road => `
+
+                    <div class="road">
+
+                        <div>
+
+                            <div class="road-name">
+                                ${road.name}
+                            </div>
+
+                            <div class="road-meta">
+                                ${road.district}
+                                · ${road.status}
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="road-score"
+                        >
+                            ${road.score}
+                        </div>
+
+                    </div>
+
+                `
+                ).join("");
+
+
+            roadLayer.clearLayers();
+
+
+            data.roads.forEach(
+                road => {
+
+                    const color =
+                        road.status ===
+                        "CRITICAL"
+                            ? "#ff4545"
+                            : road.status ===
+                              "AT RISK"
+                                ? "#ff963f"
+                                : "#38e69a";
+
+
+                    const roadMarker = L.circleMarker(
+                        [
+                            road.latitude,
+                            road.longitude
+                        ],
+                        {
+                            radius: 7,
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.9
+                        }
+                    )
+                    .bindPopup(`
+
+                        <b>
+                            ${road.name}
+                        </b>
+
+                        <br><br>
+
+                        Status:
+                        <b>
+                            ${road.status}
+                        </b>
+
+                        <br>
+
+                        Risk Score:
+                        ${road.score}
+
+                        <br>
+
+                        Response:
+                        ${road.response}
+
+                        <br><br>
+
+                        ${road.reason}
+
+                    `);
+
+                    // Road markers can overlap the zone markers.
+                    // Clicking either one should select the corresponding zone.
+                    roadMarker.on("click", event => {
+
+                        L.DomEvent.stopPropagation(
+                            event
+                        );
+
+                        let nearestZone = null;
+                        let nearestDistance = Infinity;
+
+                        zones.forEach(zone => {
+
+                            const distance =
+                                Math.pow(zone.lat - road.latitude, 2) +
+                                Math.pow(zone.lng - road.longitude, 2);
+
+                            if (distance < nearestDistance) {
+                                nearestDistance = distance;
+                                nearestZone = zone;
+                            }
+
+                        });
+
+                        if (nearestZone) {
+                            selectZone(nearestZone);
+                        }
+
+                    });
+
+                    roadMarker.addTo(roadLayer);
+
+                }
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Road error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // EMERGENCY PRIORITY
+    // =========================================================
+
+    async function loadEmergencyPriority() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/emergency-priority"
+                );
+
+
+            const data =
+                await response.json();
+
+
+            const container =
+                document.getElementById(
+                    "priorityList"
+                );
+
+
+            container.innerHTML =
+                data.priority_roads
+                    .slice(0, 7)
+                    .map(
+                        road => `
+
+                        <div class="priority">
+
+                            <div class="priority-number">
+                                ${road.priority}
+                            </div>
+
+                            <div>
+
+                                <div class="road-name">
+                                    ${road.name}
+                                </div>
+
+                                <div class="road-meta">
+                                    ${road.response}
+                                    · Score ${road.score}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `
+                    )
+                    .join("");
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Priority error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CITIZEN REPORT
+    // =========================================================
+
+    let reportLatitude = null;
+    let reportLongitude = null;
+
+
+    function getLocation() {
+
+        if (
+            !navigator.geolocation
+        ) {
+
+            document.getElementById(
+                "reportStatus"
+            ).textContent =
+                "GPS not supported.";
+
+            return;
+
+        }
+
+
+        navigator.geolocation.getCurrentPosition(
+
+            position => {
+
+                reportLatitude =
+                    position.coords.latitude;
+
+                reportLongitude =
+                    position.coords.longitude;
+
+
+                document.getElementById(
+                    "reportStatus"
+                ).textContent =
+                    `GPS captured:
+                    ${reportLatitude.toFixed(5)},
+                    ${reportLongitude.toFixed(5)}`;
+
+            },
+
+            error => {
+
+                document.getElementById(
+                    "reportStatus"
+                ).textContent =
+                    "Unable to access GPS.";
+
+            }
+
+        );
+
+    }
+
+
+    async function submitReport() {
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "location",
+            document.getElementById(
+                "reportLocation"
+            ).value
+        );
+
+
+        formData.append(
+            "severity",
+            document.getElementById(
+                "reportSeverity"
+            ).value
+        );
+
+
+        formData.append(
+            "description",
+            document.getElementById(
+                "reportDescription"
+            ).value
+        );
+
+
+        if (
+            reportLatitude !== null
+        ) {
+
+            formData.append(
+                "latitude",
+                reportLatitude
+            );
+
+            formData.append(
+                "longitude",
+                reportLongitude
+            );
+
+        }
+
+
+        const media =
+            document.getElementById(
+                "reportMedia"
+            ).files[0];
+
+
+        if (media) {
+
+            formData.append(
+                "media",
+                media
+            );
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/report",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error
+                );
+
+            }
+
+
+            document.getElementById(
+                "reportStatus"
+            ).textContent =
+                "✅ Report submitted successfully.";
+
+
+            document.getElementById(
+                "reportDescription"
+            ).value = "";
+
+
+            loadAlerts();
+
+        }
+
+        catch (error) {
+
+            document.getElementById(
+                "reportStatus"
+            ).textContent =
+                "❌ Report submission failed.";
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    // =========================================================
+    // ANALYTICS
+    // =========================================================
+
+    let riskDistributionChart;
+    let zoneRiskChart;
+    let rainfallChart;
+    let slopeChart;
+    let soilChart;
+    let historyChart;
+
+
+    function initializeAnalytics() {
+
+        // -----------------------------------------------------
+        // BASIC STATISTICS
+        // -----------------------------------------------------
+
+        const averageRisk =
+            zones.reduce(
+                (sum, z) =>
+                    sum + z.score,
+                0
+            ) / zones.length;
+
+
+        const averageRainfall =
+            zones.reduce(
+                (sum, z) =>
+                    sum + z.rainfall,
+                0
+            ) / zones.length;
+
+
+        const averageSlope =
+            zones.reduce(
+                (sum, z) =>
+                    sum + z.slope,
+                0
+            ) / zones.length;
+
+
+        const totalHistory =
+            zones.reduce(
+                (sum, z) =>
+                    sum + z.history,
+                0
+            );
+
+
+        document.getElementById(
+            "avgRisk"
+        ).textContent =
+            averageRisk.toFixed(1);
+
+
+        document.getElementById(
+            "avgRainfall"
+        ).textContent =
+            averageRainfall.toFixed(1)
+            + " mm";
+
+
+        document.getElementById(
+            "avgSlope"
+        ).textContent =
+            averageSlope.toFixed(1)
+            + "°";
+
+
+        document.getElementById(
+            "totalHistory"
+        ).textContent =
+            totalHistory;
+
+
+        // -----------------------------------------------------
+        // RISK DISTRIBUTION
+        // -----------------------------------------------------
+
+        const counts = {
+
+            LOW:
+                zones.filter(
+                    z => z.risk === "LOW"
+                ).length,
+
+            MODERATE:
+                zones.filter(
+                    z => z.risk === "MODERATE"
+                ).length,
+
+            HIGH:
+                zones.filter(
+                    z => z.risk === "HIGH"
+                ).length,
+
+            CRITICAL:
+                zones.filter(
+                    z => z.risk === "CRITICAL"
+                ).length
+
+        };
+
+
+        riskDistributionChart =
+            new Chart(
+
+                document.getElementById(
+                    "riskDistributionChart"
+                ),
+
+                {
+
+                    type: "doughnut",
+
+                    data: {
+
+                        labels: [
+                            "LOW",
+                            "MODERATE",
+                            "HIGH",
+                            "CRITICAL"
+                        ],
+
+                        datasets: [
+
+                            {
+                                data: [
+                                    counts.LOW,
+                                    counts.MODERATE,
+                                    counts.HIGH,
+                                    counts.CRITICAL
+                                ],
+
+                                backgroundColor: [
+                                    "#38e69a",
+                                    "#ffd447",
+                                    "#ff963f",
+                                    "#ff4545"
+                                ],
+
+                                borderWidth: 0
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        plugins: {
+
+                            legend: {
+
+                                labels: {
+                                    color:
+                                        "#dce8f4"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            );
+
+
+        // -----------------------------------------------------
+        // ZONE RISK
+        // -----------------------------------------------------
+
+        zoneRiskChart =
+            new Chart(
+
+                document.getElementById(
+                    "zoneRiskChart"
+                ),
+
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            zones.map(
+                                z => z.name
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Risk Score",
+
+                                data:
+                                    zones.map(
+                                        z => z.score
+                                    ),
+
+                                backgroundColor:
+                                    zones.map(
+                                        z =>
+                                            riskColor(
+                                                z.risk
+                                            )
+                                    )
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        scales: {
+
+                            y: {
+
+                                min: 0,
+
+                                max: 100,
+
+                                ticks: {
+                                    color:
+                                        "#8197aa"
+                                }
+
+                            },
+
+                            x: {
+
+                                ticks: {
+                                    color:
+                                        "#8197aa",
+                                    maxRotation: 55,
+                                    minRotation: 35
+                                }
+
+                            }
+
+                        },
+
+                        plugins: {
+
+                            legend: {
+                                display: false
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            );
+
+
+        // -----------------------------------------------------
+        // RAINFALL VS RISK
+        // -----------------------------------------------------
+
+        rainfallChart =
+            createScatterChart(
+                "rainfallChart",
+                "Rainfall (mm)",
+                zones.map(
+                    z => ({
+                        x: z.rainfall,
+                        y: z.score
+                    })
+                )
+            );
+
+
+        // -----------------------------------------------------
+        // SLOPE VS RISK
+        // -----------------------------------------------------
+
+        slopeChart =
+            createScatterChart(
+                "slopeChart",
+                "Slope (degrees)",
+                zones.map(
+                    z => ({
+                        x: z.slope,
+                        y: z.score
+                    })
+                )
+            );
+
+
+        // -----------------------------------------------------
+        // SOIL VS RISK
+        // -----------------------------------------------------
+
+        soilChart =
+            createScatterChart(
+                "soilChart",
+                "Soil Moisture (%)",
+                zones.map(
+                    z => ({
+                        x: z.soil,
+                        y: z.score
+                    })
+                )
+            );
+
+
+        // -----------------------------------------------------
+        // HISTORY
+        // -----------------------------------------------------
+
+        historyChart =
+            new Chart(
+
+                document.getElementById(
+                    "historyChart"
+                ),
+
+                {
+
+                    type: "bar",
+
+                    data: {
+
+                        labels:
+                            zones.map(
+                                z => z.name
+                            ),
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Historical Landslides",
+
+                                data:
+                                    zones.map(
+                                        z => z.history
+                                    ),
+
+                                backgroundColor:
+                                    "#4c9bd1"
+
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive: true,
+
+                        maintainAspectRatio:
+                            false,
+
+                        scales: {
+
+                            y: {
+
+                                beginAtZero: true,
+
+                                ticks: {
+                                    color:
+                                        "#8197aa"
+                                }
+
+                            },
+
+                            x: {
+
+                                ticks: {
+                                    color:
+                                        "#8197aa",
+                                    maxRotation: 55,
+                                    minRotation: 35
+                                }
+
+                            }
+
+                        },
+
+                        plugins: {
+
+                            legend: {
+
+                                labels: {
+                                    color:
+                                        "#dce8f4"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            );
+
+    }
+
+
+    function createScatterChart(
+        canvasId,
+        xLabel,
+        data
+    ) {
+
+        return new Chart(
+
+            document.getElementById(
+                canvasId
+            ),
+
+            {
+
+                type: "scatter",
+
+                data: {
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                "Zone Risk",
+
+                            data:
+                                data,
+
+                            pointRadius: 7
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio:
+                        false,
+
+                    scales: {
+
+                        x: {
+
+                            title: {
+
+                                display: true,
+
+                                text:
+                                    xLabel,
+
+                                color:
+                                    "#8197aa"
+
+                            },
+
+                            ticks: {
+                                color:
+                                    "#8197aa"
+                            }
+
+                        },
+
+                        y: {
+
+                            min: 0,
+
+                            max: 100,
+
+                            title: {
+
+                                display: true,
+
+                                text:
+                                    "Risk Score",
+
+                                color:
+                                    "#8197aa"
+
+                            },
+
+                            ticks: {
+                                color:
+                                    "#8197aa"
+                            }
+
+                        }
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            labels: {
+                                color:
+                                    "#dce8f4"
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+    }
+
+
+    // =========================================================
+    // ZONE ANALYSIS
+    // =========================================================
+
+    function showZoneAnalysis() {
+
+        const selected =
+            document.getElementById(
+                "zoneSelector"
+            ).value;
+
+        const zone =
+            zones.find(
+                z => z.name === selected
+            );
+
+        if (!zone) {
+            return;
+        }
+
+        // Use the central zone-selection flow
+        selectZone(zone);
+    }
+
+    // =========================================================
+    // INITIAL LOAD
+    // =========================================================
+
+    initializeAnalytics();
+
+    showZoneAnalysis();
+
+    loadRoads();
+
+    loadEmergencyPriority();
+
+    loadAlerts();
+
+
+    // Refresh alerts
+    setInterval(
+        loadAlerts,
+        10000
+    );
+
+
+    // Refresh roads
+    setInterval(
+        loadRoads,
+        30000
+    );
+
+
+    // Refresh priorities
+    setInterval(
+        loadEmergencyPriority,
+        30000
+    );
+
+
+</script>
+
+</body>
+</html>
+```
+````
